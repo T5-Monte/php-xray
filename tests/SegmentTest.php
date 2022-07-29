@@ -119,6 +119,145 @@ class SegmentTest extends TestCase
         $this->assertEquals('subsegment', $serialised['type']);
     }
 
+    public function testCauseSerialisesCorrectly(): void
+    {
+        $segment = new Segment();
+
+        $segment->setError(true)
+            ->setCause(
+                (new Cause())
+                    ->setIdentifier($testIdentifier = 'testCauseIdentifier')
+            )
+        ;
+
+        $this->assertEquals(
+            [
+                'id' => $segment->getId(),
+                'error' => true,
+                'cause' => $testIdentifier
+            ],
+            json_decode(json_encode($segment), true)
+        );
+    }
+
+    public function testExpandedCauseSerialisesCorrectly(): void
+    {
+        $segment = new Segment();
+
+        $segment->setError(true)
+            ->setCause(
+                (new Cause())
+                    ->setExceptions(
+                        [
+                            (new Exception($testIdentifier = 'testIdentifier'))
+                                ->setMessage($testMessage = 'testMessage')
+                                ->setRemote($testRemote = false)
+                                ->setTruncated($testTruncated = 1)
+                                ->setSkipped($testSkipped = 2)
+                                ->setCause($testCause = 'testCause')
+                                ->addStackFrame(
+                                    (new StackFrame())
+                                        ->setLabel($testStackLabel = 'testStackLabel')
+                                        ->setLine($testStackLine = 'testStackLine')
+                                        ->setPath($testStackPath = 'testStackPath')
+                                )
+                        ]
+                    )
+                    ->setPaths(
+                        [
+                            $testPath = 'testPath'
+                        ]
+                    )
+                    ->setWorkingDirectory($testWorkingDirectory = 'testWorkingDirectory')
+            )
+        ;
+
+        $this->assertEquals(
+            [
+                'id' => $segment->getId(),
+                'error' => true,
+                'cause' => [
+                    'exceptions' => [
+                        [
+                            'id' => $testIdentifier,
+                            'message' => $testMessage,
+                            'remote' => $testRemote,
+                            'truncated' => $testTruncated,
+                            'skipped' => $testSkipped,
+                            'cause' => $testCause,
+                            'stack' => [[
+                                'path' => $testStackPath,
+                                'line' => $testStackLine,
+                                'label' => $testStackLabel,
+                            ]],
+                        ]
+                    ],
+                    'working_directory' => $testWorkingDirectory,
+                    'paths' => [$testPath],
+                ],
+            ],
+            json_decode(json_encode($segment), true)
+        );
+    }
+    public function testExceptionSerialisesCorrectly(): void
+    {
+        $segment = new Segment();
+
+        $segment->setError(true)
+            ->setException(
+                (new Exception($testIdentifier = 'testIdentifier'))
+                    ->setMessage($testMessage = 'testMessage')
+                    ->setRemote($testRemote = false)
+                    ->setTruncated($testTruncated = 1)
+                    ->setSkipped($testSkipped = 2)
+                    ->setCause($testCause = 'testCause')
+                    ->addStackFrame(
+                        (new StackFrame())
+                            ->setLabel($testStackLabel = 'testStackLabel')
+                            ->setLine($testStackLine = 'testStackLine')
+                            ->setPath($testStackPath = 'testStackPath')
+                    )
+            )
+        ;
+
+        $this->assertEquals(
+            [
+                'id' => $segment->getId(),
+                'error' => true,
+                'exception' => [
+                    'id' => $testIdentifier,
+                    'message' => $testMessage,
+                    'remote' => $testRemote,
+                    'truncated' => $testTruncated,
+                    'skipped' => $testSkipped,
+                    'cause' => $testCause,
+                    'stack' => [[
+                        'path' => $testStackPath,
+                        'line' => $testStackLine,
+                        'label' => $testStackLabel,
+                    ]],
+                ],
+            ],
+            json_decode(json_encode($segment), true)
+        );
+    }
+
+    public function testExceptionWithRequiredDataSerialisesCorrectly(): void
+    {
+        $segment = new Segment();
+
+        $segment
+            ->setException(
+                (new Exception($testIdentifier = 'testIdentifier'))
+            )
+        ;
+
+        $serialisedSegment = json_decode(json_encode($segment), true);
+
+        $this->assertArrayHasKey('exception', $serialisedSegment, 'Serialising segment with set exception should yield the exception data');
+        $this->assertEquals(['id' => $testIdentifier], $serialisedSegment['exception'], 'Serialised exception should provide required data');
+    }
+
     public function testGivenAnnotationsSerialisesCorrectly(): void
     {
         $segment = new Segment();
