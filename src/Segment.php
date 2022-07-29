@@ -76,10 +76,6 @@ class Segment implements JsonSerializable
      */
     private $lastOpenSegment = 0;
     /**
-     * @var Exception|null
-     */
-    private $exception = null;
-    /**
      * @var Cause|null
      */
     private $cause = null;
@@ -282,18 +278,6 @@ class Segment implements JsonSerializable
     }
 
     /**
-     * @param Exception $exception
-     *
-     * @return static
-     */
-    public function setException(Exception $exception)
-    {
-        $this->exception = $exception;
-
-        return $this;
-    }
-
-    /**
      * @param Cause $cause
      *
      * @return static
@@ -339,7 +323,6 @@ class Segment implements JsonSerializable
             'annotations' => empty($this->annotations) ? null : $this->annotations,
             'metadata' => empty($this->metadata) ? null : $this->metadata,
             'aws' => $this->serialiseAwsData(),
-            'exception' => $this->exception,
             'cause' => $this->cause,
         ]);
     }
